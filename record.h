@@ -78,6 +78,50 @@ public:
         next_pos = -1;
     }
 
+    //constructor copia
+    RecordMeet(const RecordMeet& other)
+        : MeetID(other.MeetID) {
+        strncpy(MeetPath, other.MeetPath, MAX_PATH_LENGTH);
+        MeetPath[MAX_PATH_LENGTH - 1] = '\0';
+        strncpy(Federation, other.Federation, MAX_FEDERATION_LENGTH);
+        Federation[MAX_FEDERATION_LENGTH - 1] = '\0';
+        strncpy(Date, other.Date, MAX_DATE_LENGTH);
+        Date[MAX_DATE_LENGTH - 1] = '\0';
+        strncpy(MeetCountry, other.MeetCountry, MAX_COUNTRY_LENGTH);
+        MeetCountry[MAX_COUNTRY_LENGTH - 1] = '\0';
+        strncpy(MeetState, other.MeetState, MAX_STATE_LENGTH);
+        MeetState[MAX_STATE_LENGTH - 1] = '\0';
+        strncpy(MeetTown, other.MeetTown, MAX_TOWN_LENGTH);
+        MeetTown[MAX_TOWN_LENGTH - 1] = '\0';
+        strncpy(MeetName, other.MeetName, MAX_NAME_LENGTH);
+        MeetName[MAX_NAME_LENGTH - 1] = '\0';
+        next_pos = other.next_pos;
+    }
+
+    //operador de asignacion
+    RecordMeet& operator=(const RecordMeet& other) {
+        if (this != &other) {
+            MeetID = other.MeetID;
+            strncpy(MeetPath, other.MeetPath, MAX_PATH_LENGTH);
+            MeetPath[MAX_PATH_LENGTH - 1] = '\0';
+            strncpy(Federation, other.Federation, MAX_FEDERATION_LENGTH);
+            Federation[MAX_FEDERATION_LENGTH - 1] = '\0';
+            strncpy(Date, other.Date, MAX_DATE_LENGTH);
+            Date[MAX_DATE_LENGTH - 1] = '\0';
+            strncpy(MeetCountry, other.MeetCountry, MAX_COUNTRY_LENGTH);
+            MeetCountry[MAX_COUNTRY_LENGTH - 1] = '\0';
+            strncpy(MeetState, other.MeetState, MAX_STATE_LENGTH);
+            MeetState[MAX_STATE_LENGTH - 1] = '\0';
+            strncpy(MeetTown, other.MeetTown, MAX_TOWN_LENGTH);
+            MeetTown[MAX_TOWN_LENGTH - 1] = '\0';
+            strncpy(MeetName, other.MeetName, MAX_NAME_LENGTH);
+            MeetName[MAX_NAME_LENGTH - 1] = '\0';
+            next_pos = other.next_pos;
+        }
+        return *this;
+    }
+
+
 };
 
 class RecordCompetition {

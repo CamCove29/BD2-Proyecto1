@@ -19,17 +19,22 @@ public:
 
     RecordT* readRecord(int pos);
     void writeRecord(RecordT* record, int pos);
+    int readFirstPos();
+    void writeFirstPos(int pos);
     int readSize();
     void writeSize(int size);
     int getFileSize();
+
+    bool pseudo_add(RecordT* record);
 
 public:
     // Constructor
     SequentileFile(const std::string& data_file_name, std::function<KeyT(RecordT*)> keyAccessor);
 
     void init(const std::string& data_name_csv); //
-    bool add(RecordT* record);
+    bool add(RecordT* record); //
     bool remove(KeyT key); 
+    bool rebuild();
     RecordT* search(KeyT key); //
     vector<RecordT*> search(KeyT start_key, KeyT end_key);
 };
