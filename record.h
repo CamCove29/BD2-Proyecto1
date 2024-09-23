@@ -24,6 +24,20 @@ public:
     char MeetState[MAX_STATE_LENGTH];
     char MeetTown[MAX_TOWN_LENGTH];
     char MeetName[MAX_NAME_LENGTH];
+    int next_pos;
+
+    //constructor vacio
+    RecordMeet() {
+        MeetID = 0;
+        memset(MeetPath, 0, MAX_PATH_LENGTH);
+        memset(Federation, 0, MAX_FEDERATION_LENGTH);
+        memset(Date, 0, MAX_DATE_LENGTH);
+        memset(MeetCountry, 0, MAX_COUNTRY_LENGTH);
+        memset(MeetState, 0, MAX_STATE_LENGTH);
+        memset(MeetTown, 0, MAX_TOWN_LENGTH);
+        memset(MeetName, 0, MAX_NAME_LENGTH);
+        next_pos = -1;
+    }
 
     // Constructor que acepta const char*
     RecordMeet(int id, const char* path, const char* federation, const char* date,
@@ -45,8 +59,6 @@ public:
         strncpy(MeetName, name, MAX_NAME_LENGTH);
         MeetName[MAX_NAME_LENGTH - 1] = '\0';
     }
-
-    // Constructor que acepta std::vector<std::string>
     RecordMeet(const vector<string>& atributos)
         : MeetID(stoi(atributos[0])) {
         strncpy(MeetPath, atributos[1].c_str(), MAX_PATH_LENGTH);
@@ -63,7 +75,9 @@ public:
         MeetTown[MAX_TOWN_LENGTH - 1] = '\0';
         strncpy(MeetName, atributos[7].c_str(), MAX_NAME_LENGTH);
         MeetName[MAX_NAME_LENGTH - 1] = '\0';
+        next_pos = -1;
     }
+
 };
 
 class RecordCompetition {
