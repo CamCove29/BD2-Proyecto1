@@ -1,4 +1,10 @@
+#ifndef RECORD_H
+#define RECORD_H
+
 #include <cstring>
+#include <vector>
+#include <string>
+using namespace std;
 
 class RecordMeet {
 public:
@@ -19,12 +25,13 @@ public:
     char MeetTown[MAX_TOWN_LENGTH];
     char MeetName[MAX_NAME_LENGTH];
 
+    // Constructor que acepta const char*
     RecordMeet(int id, const char* path, const char* federation, const char* date,
                const char* country, const char* state, const char* town, 
-               const char* name) 
+               const char* name)
         : MeetID(id) {
         strncpy(MeetPath, path, MAX_PATH_LENGTH);
-        MeetPath[MAX_PATH_LENGTH - 1] = '\0'; // Asegurar que sea null-terminated
+        MeetPath[MAX_PATH_LENGTH - 1] = '\0';
         strncpy(Federation, federation, MAX_FEDERATION_LENGTH);
         Federation[MAX_FEDERATION_LENGTH - 1] = '\0';
         strncpy(Date, date, MAX_DATE_LENGTH);
@@ -38,8 +45,26 @@ public:
         strncpy(MeetName, name, MAX_NAME_LENGTH);
         MeetName[MAX_NAME_LENGTH - 1] = '\0';
     }
-};
 
+    // Constructor que acepta std::vector<std::string>
+    RecordMeet(const vector<string>& atributos)
+        : MeetID(stoi(atributos[0])) {
+        strncpy(MeetPath, atributos[1].c_str(), MAX_PATH_LENGTH);
+        MeetPath[MAX_PATH_LENGTH - 1] = '\0';
+        strncpy(Federation, atributos[2].c_str(), MAX_FEDERATION_LENGTH);
+        Federation[MAX_FEDERATION_LENGTH - 1] = '\0';
+        strncpy(Date, atributos[3].c_str(), MAX_DATE_LENGTH);
+        Date[MAX_DATE_LENGTH - 1] = '\0';
+        strncpy(MeetCountry, atributos[4].c_str(), MAX_COUNTRY_LENGTH);
+        MeetCountry[MAX_COUNTRY_LENGTH - 1] = '\0';
+        strncpy(MeetState, atributos[5].c_str(), MAX_STATE_LENGTH);
+        MeetState[MAX_STATE_LENGTH - 1] = '\0';
+        strncpy(MeetTown, atributos[6].c_str(), MAX_TOWN_LENGTH);
+        MeetTown[MAX_TOWN_LENGTH - 1] = '\0';
+        strncpy(MeetName, atributos[7].c_str(), MAX_NAME_LENGTH);
+        MeetName[MAX_NAME_LENGTH - 1] = '\0';
+    }
+};
 
 class RecordCompetition {
 public:
@@ -75,3 +100,5 @@ public:
           Deadlift4Kg(deadlift4Kg), BestDeadliftKg(bestDeadliftKg), TotalKg(totalKg),
           Place(place), Wilks(wilks) {}
 };
+
+#endif // RECORD_H
