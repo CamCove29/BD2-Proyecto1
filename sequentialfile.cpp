@@ -501,6 +501,33 @@ bool SequentileFile<RecordT, KeyT>::remove(KeyT key) {
 }
 
 
+template <class RecordT, class KeyT>
+vector<RecordT*> SequentileFile<RecordT, KeyT>::range_search(KeyT start_key, KeyT end_key) {
+    vector<RecordT*> records;
+    int mid = -1;
+    int f_minor = -2;
+    RecordT* record = search_aux(start_key, mid, f_minor);
+    if (record == nullptr) {
+        cout << "No se encontró el registro" << endl;
+        return records;
+    }
+    cout << "empieza: "<<endl;
+    while (keyAccessor(record) <= end_key) {
+        cout << record->MeetID << " " << record->MeetPath << " ";
+        records.push_back(record);
+        if (record->next_pos == -1) {
+            break;
+        }
+        record = readRecord(record->next_pos);
+    }
+    cout << "termina: "<<endl;
+    for (RecordT* record : records) {
+        cout << record->MeetID << " " << record->MeetPath << " " << record->Federation << " " << record->Date << " " << record->MeetCountry << " " << record->MeetState << " " << record->MeetTown << " " << record->MeetName << " " << record->next_pos << endl;
+    }
+    return records;
+}
+
+
 
 
 int main() {
@@ -516,10 +543,10 @@ int main() {
     //meetFile.rebuild();
 
     cout << "eliminando -------------------------------------------------"<<endl;
-    cout<<"eliminado ? "<<meetFile.remove(20);
-    cout<<"eliminado ? "<<meetFile.remove(29);
+    cout<<"eliminado ? "<<meetFile.remove(17);
+    cout<<"eliminado ? "<<meetFile.remove(19);
     cout<<"eliminado ? "<<meetFile.remove(1); //0
-    RecordMeet* meet2 = meetFile.search(20);
+    RecordMeet* meet2 = meetFile.search(10);
 
     cout <<"lentura de archivo-----------------------------------------" << endl;
     //lee el archivo binario
@@ -543,7 +570,13 @@ int main() {
     file.close();
     RecordMeet* meet3 = meetFile.readRecord(16);
     cout << meet3->MeetID << " " << meet3->MeetPath << " " << meet3->Federation << " " << meet3->Date << " " << meet3->MeetCountry << " " << meet3->MeetState << " " << meet3->MeetTown << " " << meet3->MeetName << " " << meet3->next_pos << endl;
-    
+    cout <<"--------------busqueda por rango-------------------"<<endl;
+    vector<RecordMeet*> meets = meetFile.range_search(10, 20);
+    cout <<"aaaaaaaa"<<endl;
+    cout <<meets.size()<<endl;
+    for (RecordMeet* meet : meets) {
+        cout << meet->MeetID << " " << meet->MeetPath << " " << meet->Federation << " " << meet->Date << " " << meet->MeetCountry << " " << meet->MeetState << " " << meet->MeetTown << " " << meet->MeetName << " " << meet->next_pos << endl;
+    }
     /*
     //buscar
     RecordMeet* meet2 = meetFile.search(9);
