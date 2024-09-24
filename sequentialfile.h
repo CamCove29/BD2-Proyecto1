@@ -37,7 +37,7 @@ public:
     bool remove(KeyT key); //
     bool rebuild(); //
     RecordT* search(KeyT key); //
-    vector<RecordT*> range_search(KeyT start_key, KeyT end_key);
+    vector<RecordT*> range_search(KeyT start_key, KeyT end_key); //
 };
 
 #endif // SEQUENTIALFILE_H
