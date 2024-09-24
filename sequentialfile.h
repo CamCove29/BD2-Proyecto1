@@ -26,17 +26,18 @@ public:
     int getFileSize();
 
     bool pseudo_add(RecordT* record);
+    RecordT* search_aux(KeyT key, int& mid, int& f_minor);
 
 public:
     // Constructor
     SequentileFile(const std::string& data_file_name, std::function<KeyT(RecordT*)> keyAccessor);
 
     void init(const std::string& data_name_csv); //
-    bool add(RecordT* record); //
-    bool remove(KeyT key); 
-    bool rebuild();
+    bool add(RecordT* record); //tests
+    bool remove(KeyT key); //
+    bool rebuild(); //
     RecordT* search(KeyT key); //
-    vector<RecordT*> search(KeyT start_key, KeyT end_key);
+    vector<RecordT*> range_search(KeyT start_key, KeyT end_key);
 };
 
 #endif // SEQUENTIALFILE_H

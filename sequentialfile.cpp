@@ -194,7 +194,7 @@ template <class RecordT, class KeyT>
 bool SequentileFile<RecordT, KeyT>::add(RecordT* record) {
     if (pseudo_add(record)) {
         int size = readSize();
-        writeSize(size+1);
+        //writeSize(size+1);
         /*
         if(getFileSize()-size > log2(size)) {
             rebuild();
@@ -284,40 +284,39 @@ bool SequentileFile<RecordT, KeyAccessor>::pseudo_add(RecordT* record) {
     return true;
 }
 
-    template <class RecordT, class KeyT>
-    bool SequentileFile<RecordT, KeyT>::rebuild(){
-        int first = readFirstPos();
-        int newSz = getFileSize();
-        RecordT* record = readRecord(first);
-        string name = this->data_file_name + "_temp";
-        ofstream temp_file(name, ios::binary);
-        temp_file.write(reinterpret_cast<char*>(&newSz), sizeof(int));
-        temp_file.write(reinterpret_cast<char*>(&first), sizeof(int));
-        int i = 1;
-        while(record->next_pos != -1){
-            record->next_pos = i;
-            temp_file.write(reinterpret_cast<char*>(record), sizeof(RecordT));
-            delete record;
-            record = readRecord(record->next_pos);
-            i++;
-        }
-        record->next_pos = -1;
+template <class RecordT, class KeyT>
+bool SequentileFile<RecordT, KeyT>::rebuild(){
+    int first = readFirstPos();
+    int newSz = getFileSize();
+    RecordT* record = readRecord(first);
+    string name = this->data_file_name + "_temp";
+    ofstream temp_file(name, ios::binary);
+    temp_file.write(reinterpret_cast<char*>(&newSz), sizeof(int));
+    temp_file.write(reinterpret_cast<char*>(&first), sizeof(int));
+    int i = 1;
+    while(record->next_pos != -1){
+        record->next_pos = i;
         temp_file.write(reinterpret_cast<char*>(record), sizeof(RecordT));
         delete record;
-        temp_file.close();
-        std::remove(this->data_file_name.c_str());
-        std::rename(name.c_str(), this->data_file_name.c_str());
-        return true;
+        record = readRecord(record->next_pos);
+        i++;
     }
+    record->next_pos = -1;
+    temp_file.write(reinterpret_cast<char*>(record), sizeof(RecordT));
+    delete record;
+    temp_file.close();
+    std::remove(this->data_file_name.c_str());
+    std::rename(name.c_str(), this->data_file_name.c_str());
+    return true;
+}
 
 template <class RecordT, class KeyT>
-RecordT* SequentileFile<RecordT, KeyT>::search(KeyT key) {
+RecordT* SequentileFile<RecordT, KeyT>::search_aux(KeyT key, int& mid, int& f_minor) {
     //leer size
     int size = readSize();
-    //buscar en los los restantes (size, end) 
-    int l = size;
-    int u = getFileSize()-1;
-    int mid;
+    //buscar en los size primeros registros (0, size-1)
+    int l = 0;
+    int u = size - 1;
     while (u>=l) {
         mid = (l+u)/2;
         RecordT* record = readRecord(mid);
@@ -327,27 +326,181 @@ RecordT* SequentileFile<RecordT, KeyT>::search(KeyT key) {
             u = mid - 1;
         else
             if(record->next_pos != -2) return record;
+            else return nullptr;
         delete record;
     }
-    //buscar en los size primeros registros (0, size-1)
-    l = 0;
-    u = size - 1;
-    while (u>=l) {
-        mid = (l+u)/2;
-        RecordT* record = readRecord(mid);
-        if (keyAccessor(record) < key)
-            l = mid + 1;
-        else if (keyAccessor(record) > key)
-            u = mid - 1;
-        else
-            if(record->next_pos != -2) return record;
+    f_minor = u;
+    //buscar en los los restantes (size, end)
+    cout<<"busco en los restantes"<<endl;
+    RecordT* record = readRecord(u);
+    while (record->next_pos != -1) {
+        if (keyAccessor(record) == key && record->next_pos != -2) {
+            mid = u;
+            return record;
+        }
+        u = record->next_pos;
         delete record;
+        record = readRecord(u);
     }
     //cout <<"mid: "<< mid << endl;
     //cout <<"l: "<< l << endl;
     //cout <<"u: "<< u << endl; //inmediatamente menor
     return nullptr;   
 }
+
+template <class RecordT, class KeyT>
+RecordT* SequentileFile<RecordT, KeyT>::search(KeyT key) {
+    int mid=-1;
+    int f_minor=-2;
+    RecordT* record = search_aux(key, mid, f_minor);
+    if (record != nullptr) {
+        cout << "Encontrado" << endl;
+        cout << record->MeetID << " " << record->MeetPath << " " << record->Federation << " " << record->Date << " " << record->MeetCountry << " " << record->MeetState << " " << record->MeetTown << " " << record->MeetName << endl;
+    } else {
+        cout << "No se encontró el registro" << endl;
+    }
+    return record;
+}
+
+template <class RecordT, class KeyT>
+bool SequentileFile<RecordT, KeyT>::remove(KeyT key) {
+    int my_pos = -1;
+    int f_minor = -2;
+    RecordT* eliminado = search_aux(key, my_pos, f_minor);
+
+    cout << "registro a eliminar: "
+            << " " << eliminado->MeetID << " " << eliminado->MeetPath << " " << eliminado->Federation << " " << eliminado->Date << " " << eliminado->MeetCountry << " " << eliminado->MeetState << " " << eliminado->MeetTown << " " << eliminado->MeetName << " " << eliminado->next_pos << endl;
+    
+    if (eliminado == nullptr) {
+        cout << "No se encontró el registro" << endl;
+        return false;
+    }
+    
+    if (eliminado->next_pos == -2) {
+        cout << "Registro ya eliminado" << endl;
+        delete eliminado; // Limpiar
+        return false;
+    }
+
+    //¿Where is prev?
+    int size = readSize();
+    cout <<"size: "<<size << endl;
+    cout <<"my_pos: "<<my_pos << endl; 
+    int fileSize = getFileSize();
+    if (my_pos < size) {
+        cout << "eliminado is in the n first records" << endl;
+        //eliminado is int the n first records
+        int prev_pos = my_pos;
+        RecordT* prev = eliminado;
+        while (prev->next_pos != my_pos) {
+            if(prev->next_pos != -2 && prev_pos != my_pos) {
+                //buscar prev en k restantes
+                cout << "1"<<endl;
+                for(int i = size; i < fileSize; i++){
+                    RecordT* record = readRecord(i);
+                    if(record->next_pos == my_pos){
+                        //descuelgo
+                        record->next_pos = eliminado->next_pos;
+                        eliminado->next_pos = -2;
+                        writeRecord(eliminado, my_pos);
+                        writeRecord(record, i);
+                        delete record;
+                        return true;
+                    }
+                    delete record;
+                }
+                return false;
+            }
+            if(prev_pos == 0){
+                cout << "2" <<endl;
+                int first = readFirstPos();
+                if(first == my_pos){
+                    //descuelgo
+                    writeFirstPos(eliminado->next_pos);
+                    eliminado->next_pos = -2;
+                    writeRecord(eliminado, my_pos);
+                } else {
+                    //busco prev en los k restantes
+                    for(int i = size; i < fileSize; i++){
+                        RecordT* record = readRecord(i);
+                        if(record->next_pos == my_pos){
+                            //descuelgo
+                            record->next_pos = eliminado->next_pos;
+                            eliminado->next_pos = -2;
+                            writeRecord(eliminado, my_pos);
+                            writeRecord(record, i);
+                            delete record;
+                            return true;
+                        }
+                        delete record;
+                    }
+                    return false;
+                }
+            }
+            cout << "88" <<endl;
+            delete prev;
+            prev_pos = prev_pos - 1;
+            prev = readRecord(prev_pos); 
+        }
+        //consegui prev
+        cout << "7" <<endl;
+        prev->next_pos = eliminado->next_pos;
+        eliminado->next_pos = -2;
+        writeRecord(eliminado, my_pos);
+        writeRecord(prev, prev_pos);
+        RecordT* prev2 = readRecord(my_pos);
+        cout << "leer: " << prev2->MeetID << " " << prev2->MeetPath << " " << prev2->Federation << " " << prev2->Date << " " << prev2->MeetCountry << " " << prev2->MeetState << " " << prev2->MeetTown << " " << prev2->MeetName << " " << prev2->next_pos << endl;
+        delete prev;
+        return true;
+
+    } else {
+        cout << "eliminado is in the k rest of records" << endl;    
+        //eliminado is in the k rest of records
+        //buscar prev en k restantes
+        for(int i = size; i < fileSize; i++){
+            RecordT* record = readRecord(i);
+            if(record->next_pos == my_pos){
+                cout << "9" <<endl;
+                //descuelgo
+                record->next_pos = eliminado->next_pos;
+                eliminado->next_pos = -2;
+                writeRecord(eliminado, my_pos);
+                writeRecord(record, i);
+                delete record;
+                return true;
+            }
+            delete record;
+        }
+        //buscar prev en los n primeros
+        int prev_pos = f_minor;
+        RecordT* prev = readRecord(prev_pos);
+        cout << "10" <<endl;
+
+        while(prev->next_pos != my_pos){
+            if(prev_pos == 0){
+                int first = readFirstPos();
+                if(first == my_pos){
+                    //descuelgo
+                    writeFirstPos(eliminado->next_pos);
+                    eliminado->next_pos = -2;
+                    writeRecord(eliminado, my_pos);
+                } 
+            }
+            delete prev;
+            prev_pos = prev_pos - 1;
+            prev = readRecord(prev_pos);
+        }
+        //consegui prev
+        prev->next_pos = eliminado->next_pos;
+        eliminado->next_pos = -2;
+        writeRecord(eliminado, my_pos);
+        writeRecord(prev, prev_pos);
+        cout << "11" <<endl;
+        return true;
+    }
+}
+
+
 
 
 int main() {
@@ -360,8 +513,15 @@ int main() {
     if(meetFile.getFileSize() <= 0)
         meetFile.init("datasets/meets.csv");
 
-    meetFile.rebuild();
+    //meetFile.rebuild();
 
+    cout << "eliminando -------------------------------------------------"<<endl;
+    cout<<"eliminado ? "<<meetFile.remove(20);
+    cout<<"eliminado ? "<<meetFile.remove(29);
+    cout<<"eliminado ? "<<meetFile.remove(1); //0
+    RecordMeet* meet2 = meetFile.search(20);
+
+    cout <<"lentura de archivo-----------------------------------------" << endl;
     //lee el archivo binario
     ifstream file("meets.dat", ios::binary);
     if (!file.is_open()) {
@@ -373,12 +533,17 @@ int main() {
     file.read(reinterpret_cast<char*>(&sz), sizeof(int));
     int fp;
     file.read(reinterpret_cast<char*>(&fp), sizeof(int));
-    cout << "size: " << sz << endl;
+    int hola = 0;
+    cout << "size: " << meetFile.getFileSize() <<endl;
     cout << "first_pos: " << fp << endl;
     while (file.read(reinterpret_cast<char*>(&meet), sizeof(RecordMeet))) {
-        cout << meet.MeetID << " " << meet.MeetPath << " " << meet.Federation << " " << meet.Date << " " << meet.MeetCountry << " " << meet.MeetState << " " << meet.MeetTown << " " << meet.MeetName << " " << meet.next_pos << endl;
+        cout <<hola<<" -> "<< meet.MeetID << " " << meet.MeetPath << " " << meet.Federation << " " << meet.Date << " " << meet.MeetCountry << " " << meet.MeetState << " " << meet.MeetTown << " " << meet.MeetName << " " << meet.next_pos << endl;
+        hola++;
     }
     file.close();
+    RecordMeet* meet3 = meetFile.readRecord(16);
+    cout << meet3->MeetID << " " << meet3->MeetPath << " " << meet3->Federation << " " << meet3->Date << " " << meet3->MeetCountry << " " << meet3->MeetState << " " << meet3->MeetTown << " " << meet3->MeetName << " " << meet3->next_pos << endl;
+    
     /*
     //buscar
     RecordMeet* meet2 = meetFile.search(9);
