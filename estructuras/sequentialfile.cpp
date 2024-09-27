@@ -13,55 +13,6 @@ using namespace std;
 
 
 template <class RecordT>
-bool SequentileFile<RecordT>::compare(std::string data1, std::string data2, std::string op){
-    if (data_type == "int") {
-        int data1_int = stoi(data1);
-        int data2_int = stoi(data2);
-        if (op == "<") {
-            return data1_int < data2_int;
-        } else if (op == "<=") {
-            return data1_int <= data2_int;
-        } else if (op == ">") {
-            return data1_int > data2_int;
-        } else if (op == ">=") {
-            return data1_int >= data2_int;
-        } else if (op == "==") {
-            return data1_int == data2_int;
-        } else if (op == "!=") {
-            return data1_int != data2_int;
-        }
-    } else if (data_type == "string" || data_type == "nonetype") { //cuando no tiene tipo se asume que es string
-        if (op == "<") {
-            return data1 < data2;
-        } else if (op == "<=") {
-            return data1 <= data2;
-        } else if (op == ">") {
-            return data1 > data2;
-        } else if (op == ">=") {
-            return data1 >= data2;
-        } else if (op == "==") {
-            return data1 == data2;
-        } else if (op == "!=") {
-            return data1 != data2;
-        }
-    }
-
-    return false;
-}
-
-template <class RecordT>
-std::string SequentileFile<RecordT>::get_type_from_string(std::string data){
-    try {
-        int data_int = stoi(data);
-        return "int";
-    } catch (const std::invalid_argument& ia) {
-        return "string";
-    }
-
-    return "nonetype";
-}
-
-template <class RecordT>
 SequentileFile<RecordT>::SequentileFile(const string& data_file_name, std::string key_name) {
     this->data_file_name = data_file_name;
 
