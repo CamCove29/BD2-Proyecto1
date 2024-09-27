@@ -1,0 +1,5 @@
+create table Customer from file “C:\data.csv” using index hash(“DNI”)
+select * from Customer where DNI = x
+select * from Customer where DNI between x and y
+insert into Customer values(73964940, melisa, rivera)
+delete from Customer where DNI = x
