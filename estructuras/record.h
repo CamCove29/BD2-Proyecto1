@@ -6,6 +6,7 @@
 #include <string>
 using namespace std;
 
+
 class RecordMeet {
 public:
     static const int MAX_PATH_LENGTH = 20;
@@ -121,6 +122,28 @@ public:
         return *this;
     }
 
+    //get string attribute
+    std::pair<std::string, std::string> getStringAttribute(std::string key) {
+        if (key == "MeetID") {
+            return std::make_pair("int", std::to_string(MeetID));
+        } else if (key == "MeetPath") {
+            return std::make_pair("string", std::string(MeetPath));
+        } else if (key == "Federation") {
+            return std::make_pair("string", std::string(Federation));
+        } else if (key == "Date") {
+            return std::make_pair("string", std::string(Date));
+        } else if (key == "MeetCountry") {
+            return std::make_pair("string", std::string(MeetCountry));
+        } else if (key == "MeetState") {
+            return std::make_pair("string", std::string(MeetState));
+        } else if (key == "MeetTown") {
+            return std::make_pair("string", std::string(MeetTown));
+        } else if (key == "MeetName") {
+            return std::make_pair("string", std::string(MeetName));
+        } else {
+            return std::make_pair("nonetype", "");
+        }
+    }
 
 };
 
@@ -148,6 +171,7 @@ public:
     int Place;
     double Wilks;
 
+
     RecordCompetition(int meetID, const std::string& name, char sex, const std::string& equipment,
                       int age, const std::string& division, double bodyweightKg, double weightClassKg,
                       double squat4Kg, double bestSquatKg, double bench4Kg, double bestBenchKg,
@@ -157,6 +181,47 @@ public:
           BestSquatKg(bestSquatKg), Bench4Kg(bench4Kg), BestBenchKg(bestBenchKg),
           Deadlift4Kg(deadlift4Kg), BestDeadliftKg(bestDeadliftKg), TotalKg(totalKg),
           Place(place), Wilks(wilks) {}
+
+    //get string attribute
+    std::pair<std::string, std::string> getStringAttribute(std::string key) {
+        if (key == "MeetID") {
+            return std::make_pair("int", std::to_string(MeetID));
+        } else if (key == "Name") {
+            return std::make_pair("string", Name);
+        } else if (key == "Sex") {
+            return std::make_pair("string", std::string(1, Sex));
+        } else if (key == "Equipment") {
+            return std::make_pair("string", Equipment);
+        } else if (key == "Age") {
+            return std::make_pair("int", std::to_string(Age));
+        } else if (key == "Division") {
+            return std::make_pair("string", Division);
+        } else if (key == "BodyweightKg") {
+            return std::make_pair("double", std::to_string(BodyweightKg));
+        } else if (key == "WeightClassKg") {
+            return std::make_pair("double", std::to_string(WeightClassKg));
+        } else if (key == "Squat4Kg") {
+            return std::make_pair("double", std::to_string(Squat4Kg));
+        } else if (key == "BestSquatKg") {
+            return std::make_pair("double", std::to_string(BestSquatKg));
+        } else if (key == "Bench4Kg") {
+            return std::make_pair("double", std::to_string(Bench4Kg));
+        } else if (key == "BestBenchKg") {
+            return std::make_pair("double", std::to_string(BestBenchKg));
+        } else if (key == "Deadlift4Kg") {
+            return std::make_pair("double", std::to_string(Deadlift4Kg));
+        } else if (key == "BestDeadliftKg") {
+            return std::make_pair("double", std::to_string(BestDeadliftKg));
+        } else if (key == "TotalKg") {
+            return std::make_pair("double", std::to_string(TotalKg));
+        } else if (key == "Place") {
+            return std::make_pair("int", std::to_string(Place));
+        } else if (key == "Wilks") {
+            return std::make_pair("double", std::to_string(Wilks));
+        } else {
+            return std::make_pair("nonetype", "");
+        }
+    }
 };
 
 #endif // RECORD_H

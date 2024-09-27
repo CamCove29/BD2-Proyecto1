@@ -11,14 +11,70 @@
 #include <cmath>
 using namespace std;
 
-template <class RecordT, class KeyT>
-SequentileFile<RecordT, KeyT>::SequentileFile(const string& data_file_name, function<KeyT(RecordT*)> keyAccessor) {
-    this->data_file_name = data_file_name;
-    this->keyAccessor = keyAccessor;
+
+template <class RecordT>
+bool SequentileFile<RecordT>::compare(std::string data1, std::string data2, std::string op){
+    if (data_type == "int") {
+        int data1_int = stoi(data1);
+        int data2_int = stoi(data2);
+        if (op == "<") {
+            return data1_int < data2_int;
+        } else if (op == "<=") {
+            return data1_int <= data2_int;
+        } else if (op == ">") {
+            return data1_int > data2_int;
+        } else if (op == ">=") {
+            return data1_int >= data2_int;
+        } else if (op == "==") {
+            return data1_int == data2_int;
+        } else if (op == "!=") {
+            return data1_int != data2_int;
+        }
+    } else if (data_type == "string" || data_type == "nonetype") { //cuando no tiene tipo se asume que es string
+        if (op == "<") {
+            return data1 < data2;
+        } else if (op == "<=") {
+            return data1 <= data2;
+        } else if (op == ">") {
+            return data1 > data2;
+        } else if (op == ">=") {
+            return data1 >= data2;
+        } else if (op == "==") {
+            return data1 == data2;
+        } else if (op == "!=") {
+            return data1 != data2;
+        }
+    }
+
+    return false;
 }
 
-template <class RecordT, class KeyT>
-RecordT* SequentileFile<RecordT, KeyT>::readRecord(int pos) {
+template <class RecordT>
+std::string SequentileFile<RecordT>::get_type_from_string(std::string data){
+    try {
+        int data_int = stoi(data);
+        return "int";
+    } catch (const std::invalid_argument& ia) {
+        return "string";
+    }
+
+    return "nonetype";
+}
+
+template <class RecordT>
+SequentileFile<RecordT>::SequentileFile(const string& data_file_name, std::string key_name) {
+    this->data_file_name = data_file_name;
+
+    this->key_name = key_name;
+
+    this->keyAccessor = [key_name](RecordT* record) {
+        std::pair<std::string, std::string> result = record->getStringAttribute(key_name);
+        return result.second;
+    };
+}
+
+template <class RecordT>
+RecordT* SequentileFile<RecordT>::readRecord(int pos) {
     ifstream file(this->data_file_name, ios::binary);
     if (!file.is_open()) {
         //cout << "Error al abrir el archivo1" << endl;
@@ -31,8 +87,8 @@ RecordT* SequentileFile<RecordT, KeyT>::readRecord(int pos) {
     return record;
 }
 
-template <class RecordT, class KeyT>
-void SequentileFile<RecordT, KeyT>::writeRecord(RecordT* record, int pos) {
+template <class RecordT>
+void SequentileFile<RecordT>::writeRecord(RecordT* record, int pos) {
     fstream file(this->data_file_name, ios::binary | ios::in | ios::out);
     if (!file.is_open()) {
         // Si no existe, crearlo y abrirlo
@@ -47,8 +103,8 @@ void SequentileFile<RecordT, KeyT>::writeRecord(RecordT* record, int pos) {
     file.close();
 }
 
-template <class RecordT, class KeyT>
-int SequentileFile<RecordT, KeyT>::readFirstPos() {
+template <class RecordT>
+int SequentileFile<RecordT>::readFirstPos() {
     ifstream file(this->data_file_name, ios::binary);
     if (!file.is_open()) {
         return -1;
@@ -60,8 +116,8 @@ int SequentileFile<RecordT, KeyT>::readFirstPos() {
     return first_pos;
 }
 
-template <class RecordT, class KeyT>
-void SequentileFile<RecordT, KeyT>::writeFirstPos(int pos) {
+template <class RecordT>
+void SequentileFile<RecordT>::writeFirstPos(int pos) {
     fstream file(this->data_file_name, ios::binary | ios::in | ios::out);
     if (!file.is_open()) {
         file.open(this->data_file_name, ios::binary | ios::out);
@@ -72,8 +128,8 @@ void SequentileFile<RecordT, KeyT>::writeFirstPos(int pos) {
 }
 
 
-template <class RecordT, class KeyT>
-int SequentileFile<RecordT, KeyT>::readSize() {
+template <class RecordT>
+int SequentileFile<RecordT>::readSize() {
     ifstream file(this->data_file_name, ios::binary);
     if (!file.is_open()) {
         //cout << "Error al abrir el archivo3" << endl;
@@ -86,8 +142,8 @@ int SequentileFile<RecordT, KeyT>::readSize() {
     return size;
 }
 
-template <class RecordT, class KeyT>
-void SequentileFile<RecordT, KeyT>::writeSize(int size) {
+template <class RecordT>
+void SequentileFile<RecordT>::writeSize(int size) {
     fstream file(this->data_file_name, ios::binary | ios::in | ios::out);
     if (!file.is_open()) {
         file.open(this->data_file_name, ios::binary | ios::out);
@@ -97,8 +153,8 @@ void SequentileFile<RecordT, KeyT>::writeSize(int size) {
     file.close();
 }
 
-template <class RecordT, class KeyT>
-int SequentileFile<RecordT, KeyT>::getFileSize() {
+template <class RecordT>
+int SequentileFile<RecordT>::getFileSize() {
     ifstream file(this->data_file_name, ios::binary);
     if (!file.is_open()) {
         //cout << "Error al abrir el archivo5" << endl;
@@ -110,8 +166,52 @@ int SequentileFile<RecordT, KeyT>::getFileSize() {
     return (size-2*sizeof(int))/sizeof(RecordT);
 }
 
-template <class RecordT, class KeyT>
-void SequentileFile<RecordT, KeyT>::init(const string& data_name_csv) {
+template <class RecordT>
+void SequentileFile<RecordT>::init(const string& data_name_csv) {
+    // inicializar el data_type
+    //revisar la columna de key_name en el csv y determinar si es int o string
+    ifstream csv_file_helper(data_name_csv);
+    if (!csv_file_helper.is_open()) {
+        cout << "Error al abrir el archivo" << endl;
+        exit(1);
+    }
+
+    //leer las dos primeras lineas, un encabezado y un registro. El encabezado es para saber que columna es key_name
+    //el registro para obtener elvalor y preguntar si es int o string
+    string encabezado, registro;
+    getline(csv_file_helper, encabezado);
+    getline(csv_file_helper, registro);
+
+    /* std::cout << "encabezado: " << encabezado << std::endl;
+    std::cout << "registro: " << registro << std::endl;*/
+    stringstream ss_encabezado(encabezado);
+    stringstream ss_registro(registro);
+
+    string item_encabezado, item_registro;
+    vector<string> items_encabezado;
+    vector<string> items_registro;
+
+    while (getline(ss_encabezado, item_encabezado, ',')) {
+        items_encabezado.push_back(item_encabezado);
+    }
+
+    while (getline(ss_registro, item_registro, ',')) {
+        items_registro.push_back(item_registro);
+    }
+
+    int i = 0;
+    for (string item : items_encabezado) {
+        if (item == key_name) {
+            data_type = get_type_from_string(items_registro[i]);
+            break;
+        }
+        i++;
+    }
+
+    csv_file_helper.close();
+
+
+
     //--------------inicializar el dataFile ----------------
     vector<RecordT*> records;
     ifstream data_file(data_name_csv);
@@ -121,7 +221,7 @@ void SequentileFile<RecordT, KeyT>::init(const string& data_name_csv) {
     }
     string line;
     getline(data_file, line);  // Leer la primera línea (encabezados)
-    int i = 1;
+    i = 1;
     while(data_file.peek() != EOF && records.size() < limit*3) {
         getline(data_file, line);
         stringstream ss(line);
@@ -147,7 +247,7 @@ void SequentileFile<RecordT, KeyT>::init(const string& data_name_csv) {
 
     //ordenar vector
     sort(records.begin(), records.end(), [this](RecordT* a, RecordT* b) {
-        return keyAccessor(a) < keyAccessor(b);
+        return compare(keyAccessor(a), keyAccessor(b), "<");
     });
 
     for (int i = 0; i < records.size()-1; i++) {
@@ -190,8 +290,8 @@ void SequentileFile<RecordT, KeyT>::init(const string& data_name_csv) {
     data_file.close();
 }
 
-template <class RecordT, class KeyT>
-bool SequentileFile<RecordT, KeyT>::add(RecordT* record) {
+template <class RecordT>
+bool SequentileFile<RecordT>::add(RecordT* record) {
     if (pseudo_add(record)) {
         int size = readSize();
         //writeSize(size+1);
@@ -206,8 +306,8 @@ bool SequentileFile<RecordT, KeyT>::add(RecordT* record) {
     return false;
 }
 
-template<typename RecordT, typename KeyAccessor>
-bool SequentileFile<RecordT, KeyAccessor>::pseudo_add(RecordT* record) {
+template<typename RecordT>
+bool SequentileFile<RecordT>::pseudo_add(RecordT* record) {
     int l = 0;
     int u = readSize() - 1;
     int mid;
@@ -221,9 +321,9 @@ bool SequentileFile<RecordT, KeyAccessor>::pseudo_add(RecordT* record) {
             return false;
         }
         
-        if (keyAccessor(current) < keyAccessor(record)) {
+        if (compare(keyAccessor(current), keyAccessor(record), "<")) {
             l = mid + 1;
-        } else if (keyAccessor(current) > keyAccessor(record)) {
+        } else if (compare(keyAccessor(current), keyAccessor(record), ">")) {
             u = mid - 1;
         } else {
             delete current;
@@ -258,7 +358,7 @@ bool SequentileFile<RecordT, KeyAccessor>::pseudo_add(RecordT* record) {
             continue;
         }
         
-        if (keyAccessor(current) > keyAccessor(record)) {
+        if (compare(keyAccessor(current), keyAccessor(record), ">")) {
             // Insert between prev and current
             record->next_pos = prev->next_pos;
             prev->next_pos = getFileSize();
@@ -284,8 +384,8 @@ bool SequentileFile<RecordT, KeyAccessor>::pseudo_add(RecordT* record) {
     return true;
 }
 
-template <class RecordT, class KeyT>
-bool SequentileFile<RecordT, KeyT>::rebuild(){
+template <class RecordT>
+bool SequentileFile<RecordT>::rebuild(){
     int first = readFirstPos();
     int newSz = getFileSize();
     RecordT* record = readRecord(first);
@@ -310,8 +410,8 @@ bool SequentileFile<RecordT, KeyT>::rebuild(){
     return true;
 }
 
-template <class RecordT, class KeyT>
-RecordT* SequentileFile<RecordT, KeyT>::search_aux(KeyT key, int& mid, int& f_minor) {
+template <class RecordT>
+RecordT* SequentileFile<RecordT>::search_aux(std::string key, int& mid, int& f_minor) {
     //leer size
     int size = readSize();
     //buscar en los size primeros registros (0, size-1)
@@ -320,9 +420,9 @@ RecordT* SequentileFile<RecordT, KeyT>::search_aux(KeyT key, int& mid, int& f_mi
     while (u>=l) {
         mid = (l+u)/2;
         RecordT* record = readRecord(mid);
-        if (keyAccessor(record) < key)
+        if (compare(keyAccessor(record), key, "<"))
             l = mid + 1;
-        else if (keyAccessor(record) > key)
+        else if (compare(keyAccessor(record), key, ">"))
             u = mid - 1;
         else
             if(record->next_pos != -2) return record;
@@ -334,7 +434,8 @@ RecordT* SequentileFile<RecordT, KeyT>::search_aux(KeyT key, int& mid, int& f_mi
     //cout<<"busco en los restantes"<<endl;
     RecordT* record = readRecord(u);
     while (record->next_pos != -1) {
-        if (keyAccessor(record) == key && record->next_pos != -2) {
+        if (compare(keyAccessor(record), key, "==")
+        && record->next_pos != -2) {
             mid = u;
             return record;
         }
@@ -348,8 +449,8 @@ RecordT* SequentileFile<RecordT, KeyT>::search_aux(KeyT key, int& mid, int& f_mi
     return nullptr;   
 }
 
-template <class RecordT, class KeyT>
-RecordT* SequentileFile<RecordT, KeyT>::search(KeyT key) {
+template <class RecordT>
+RecordT* SequentileFile<RecordT>::search(std::string key) {
     int mid=-1;
     int f_minor=-2;
     RecordT* record = search_aux(key, mid, f_minor);
@@ -362,8 +463,8 @@ RecordT* SequentileFile<RecordT, KeyT>::search(KeyT key) {
     return record;
 }
 
-template <class RecordT, class KeyT>
-bool SequentileFile<RecordT, KeyT>::remove(KeyT key) {
+template <class RecordT>
+bool SequentileFile<RecordT>::remove(std::string key) {
     int my_pos = -1;
     int f_minor = -2;
     RecordT* eliminado = search_aux(key, my_pos, f_minor);
@@ -499,8 +600,10 @@ bool SequentileFile<RecordT, KeyT>::remove(KeyT key) {
     }
 }
 
-template <class RecordT, class KeyT>
-vector<RecordT*> SequentileFile<RecordT, KeyT>::range_search(KeyT start_key, KeyT end_key) {
+
+
+template <class RecordT>
+vector<RecordT*> SequentileFile<RecordT>::range_search(std::string start_key, std::string end_key) {
     vector<RecordT*> records;
     int mid = -1;
     int f_minor = -2;
@@ -510,7 +613,7 @@ vector<RecordT*> SequentileFile<RecordT, KeyT>::range_search(KeyT start_key, Key
         return records;
     }
     //cout << "empieza: "<<endl;
-    while (keyAccessor(record) <= end_key) {
+    while (compare(keyAccessor(record), end_key, "<=")) {
         //cout << record->MeetID << " " << record->MeetPath << " ";
         records.push_back(record);
         if (record->next_pos == -1) {
@@ -524,73 +627,3 @@ vector<RecordT*> SequentileFile<RecordT, KeyT>::range_search(KeyT start_key, Key
     }
     return records;
 }
-
-
-
-/* 
-int main() {
-    SequentileFile<RecordMeet, int> meetFile("meets.dat",
-                                             [](RecordMeet* record) { return record->MeetID; });
-
-    //SequentileFile<RecordMeet, string> meetFile2("meets2.dat",
-                                            // [](RecordMeet* record) { return record->Date; });
-    cout <<"a:" <<meetFile.getFileSize() << endl;
-    if(meetFile.getFileSize() <= 0)
-        meetFile.init("../data/meets.csv");
-
-    //meetFile.rebuild();
-
-    cout << "eliminando -------------------------------------------------"<<endl;
-    cout<<"eliminado ? "<<meetFile.remove(17);
-    cout<<"eliminado ? "<<meetFile.remove(19);
-    cout<<"eliminado ? "<<meetFile.remove(1); //0
-    RecordMeet* meet2 = meetFile.search(10);
-
-    cout <<"lentura de archivo-----------------------------------------" << endl;
-    //lee el archivo binario
-    ifstream file("meets.dat", ios::binary);
-    if (!file.is_open()) {
-        cout << "Error al abrir el archivo" << endl;
-        return 1;
-    }
-    RecordMeet meet;
-    int sz;
-    file.read(reinterpret_cast<char*>(&sz), sizeof(int));
-    int fp;
-    file.read(reinterpret_cast<char*>(&fp), sizeof(int));
-    int hola = 0;
-    cout << "size: " << meetFile.getFileSize() <<endl;
-    cout << "first_pos: " << fp << endl;
-    while (file.read(reinterpret_cast<char*>(&meet), sizeof(RecordMeet))) {
-        cout <<hola<<" -> "<< meet.MeetID << " " << meet.MeetPath << " " << meet.Federation << " " << meet.Date << " " << meet.MeetCountry << " " << meet.MeetState << " " << meet.MeetTown << " " << meet.MeetName << " " << meet.next_pos << endl;
-        hola++;
-    }
-    file.close();
-    RecordMeet* meet3 = meetFile.readRecord(16);
-    cout << meet3->MeetID << " " << meet3->MeetPath << " " << meet3->Federation << " " << meet3->Date << " " << meet3->MeetCountry << " " << meet3->MeetState << " " << meet3->MeetTown << " " << meet3->MeetName << " " << meet3->next_pos << endl;
-    cout <<"--------------busqueda por rango-------------------"<<endl;
-    vector<RecordMeet*> meets = meetFile.range_search(10, 20);
-    cout <<"aaaaaaaa"<<endl;
-    cout <<meets.size()<<endl;
-    for (RecordMeet* meet : meets) {
-        cout << meet->MeetID << " " << meet->MeetPath << " " << meet->Federation << " " << meet->Date << " " << meet->MeetCountry << " " << meet->MeetState << " " << meet->MeetTown << " " << meet->MeetName << " " << meet->next_pos << endl;
-    }
-    /*
-    //buscar
-    RecordMeet* meet2 = meetFile.search(9);
-    RecordMeet* meet3 = meetFile.search(5);
-    RecordMeet* meet4 = meetFile.search(-1);
-
-    if (meet2 != nullptr) {
-        cout<<"Encontrado"<<endl;
-        cout << meet2->MeetID << " " << meet2->MeetPath << " " << meet2->Federation << " " << meet2->Date << " " << meet2->MeetCountry << " " << meet2->MeetState << " " << meet2->MeetTown << " " << meet2->MeetName << endl;
-    } else {
-        cout << "No se encontró el registro" << endl;
-    }
-    //rebuild
-
-
-    
-    return 0;
-}
- */

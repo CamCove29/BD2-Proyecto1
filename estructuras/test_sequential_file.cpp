@@ -8,6 +8,8 @@
 #include <vector>
 #include <cassert>
 
+#define key_identifier "MeetID"
+
 int asserted = 0;
 int tests = 0;
 
@@ -20,7 +22,7 @@ void testInit() {
         std::string binary_file = "test_data.bin";
 
         // Inicializamos el archivo secuencial
-        SequentileFile<RecordMeet, int> seqFile(binary_file, [](RecordMeet* rec) { return rec->MeetID; });
+        SequentileFile<RecordMeet> seqFile(binary_file, key_identifier);
         seqFile.init(csv_file);
         
         asserted += 1;
@@ -39,16 +41,16 @@ void testAdd() {
     tests += 1;
 
     std::string binary_file = "test_data.bin";
-    SequentileFile<RecordMeet, int> seqFile(binary_file, [](RecordMeet* rec) { return rec->MeetID; });
+    SequentileFile<RecordMeet> seqFile(binary_file, key_identifier);
 
     //remove record with ID 4 if it exists
-    seqFile.remove(4);
+    seqFile.remove("4");
 
     RecordMeet newRecord(4, "/path/to/meet4", "Federation4", "2024-01-04", "USA", "State4", "Town4", "Meet4");
     seqFile.add(&newRecord); // 1 si se agrega correctamente, 0 si no
 
     //search for the added record
-    RecordMeet* found = seqFile.search(4);
+    RecordMeet* found = seqFile.search("4"); 
     if (found) {
         /* std::cout << "Registro encontrado: " << found->MeetID << ", " << found->MeetName << std::endl;
         std::cout << "Registro agregado correctamente." << std::endl; */
@@ -70,7 +72,7 @@ void testAdd() {
 void testSearch() {
     //std::cout << "---- TEST DE BÚSQUEDA DE REGISTROS ----" << std::endl;
     std::string binary_file = "test_data.bin";
-    SequentileFile<RecordMeet, int> seqFile(binary_file, [](RecordMeet* rec) { return rec->MeetID; });
+    SequentileFile<RecordMeet> seqFile(binary_file, key_identifier);
 
     tests += 1;
 
@@ -78,9 +80,9 @@ void testSearch() {
 
     for (int i = 1; i <= 4; i++) {
         int searchID = i;
-        RecordMeet* found = seqFile.search(searchID);
+        RecordMeet* found = seqFile.search(std::to_string(searchID));
         if (found) {
-            /* std::cout << "Registro encontrado: " << found->MeetID << ", " << found->MeetName << std::endl; */
+            //std::cout << "Registro encontrado: " << found->MeetID << ", " << found->MeetName << std::endl;
             if (found->MeetID == searchID) {
                 oneFound = true;
             }
@@ -110,10 +112,10 @@ void testSearchNotFound() {
     tests += 1;
 
     std::string binary_file = "test_data.bin";
-    SequentileFile<RecordMeet, int> seqFile(binary_file, [](RecordMeet* rec) { return rec->MeetID; });
+    SequentileFile<RecordMeet> seqFile(binary_file, key_identifier);
 
     int searchID = 46531;
-    RecordMeet* found = seqFile.search(searchID);
+    RecordMeet* found = seqFile.search(std::to_string(searchID));
     if (found) {
         /* std::cout << "Registro encontrado: " << found->MeetID << ", " << found->MeetName << std::endl; */
         asserted += 0;
@@ -132,13 +134,13 @@ void testRemove() {
     tests += 1;
 
     std::string binary_file = "test_data.bin";
-    SequentileFile<RecordMeet, int> seqFile(binary_file, [](RecordMeet* rec) { return rec->MeetID; });
+    SequentileFile<RecordMeet> seqFile(binary_file, key_identifier);
 
     int removeID = 3;
-    seqFile.remove(removeID);
+    seqFile.remove(std::to_string(removeID)); // 1 si se elimina correctamente, 0 si no
 
     //search for the removed record
-    RecordMeet* found = seqFile.search(removeID);
+    RecordMeet* found = seqFile.search(std::to_string(removeID));
     if (found) {
         /* std::cout << "Registro encontrado: " << found->MeetID << ", " << found->MeetName << std::endl;
         std::cout << "Registro eliminado incorrectamente." << std::endl; */
@@ -162,7 +164,7 @@ void testRangeSearch() {
     tests += 1;
 
     std::string binary_file = "test_data.bin";
-    SequentileFile<RecordMeet, int> seqFile(binary_file, [](RecordMeet* rec) { return rec->MeetID; });
+    SequentileFile<RecordMeet> seqFile(binary_file, key_identifier);
 
     // Agregar registros del 50 al 60
     for (int i = 50; i <= 60; i++) {
@@ -173,7 +175,7 @@ void testRangeSearch() {
     }
 
     // Realizar búsqueda por rango del 54 al 60
-    std::vector<RecordMeet*> results = seqFile.range_search(54, 60);
+    std::vector<RecordMeet*> results = seqFile.range_search(std::to_string(54), std::to_string(60));
     bool allFound = true;
 
     for (int id = 54; id <= 60; id++) {
