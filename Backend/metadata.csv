@@ -1,2 +1,2 @@
 table_name,record_type,index_type,key_name
-meliHermosa,RecordMeet,sparse,MeetID
+meetTable,RecordMeet,sparse,MeetID

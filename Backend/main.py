@@ -19,7 +19,7 @@ def run_query():
 
     try:
         # Ejecuta el programa de C++ que procesará el archivo
-        result = subprocess.run(['./a.out', 'input_query.sql'], capture_output=True, text=True)
+        result = subprocess.run(['./main.exe', 'input_query.sql'], capture_output=True, text=True)
         
         # Captura la salida del cout
         output = result.stdout

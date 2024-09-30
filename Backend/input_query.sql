@@ -1,1 +1,1 @@
-SELECT MeetID,Federation,MeetCountry FROM meliHermosa WHERE MeetID = 247
+CREATE TABLE tablita FROM FILE "openpowerlifting.csv" USING INDEX sparse("MeetID")

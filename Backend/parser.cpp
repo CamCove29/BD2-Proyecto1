@@ -613,7 +613,7 @@ string SQLParser::parseCreateStm()
 
             save_to_metadata(table_name, "RecordMeet", index_type, key);
         }
-        else if (file_name == "competitions.csv")
+        else if (file_name == "openpowerlifting.csv")
         {
             indexB = new SequentileFile<RecordCompetition>(table_name + "data_file", key);
             indexB->init(file_name);
@@ -630,7 +630,7 @@ string SQLParser::parseCreateStm()
 
             save_to_metadata(table_name, "RecordMeet", index_type, key);
         }
-        else if (file_name == "competitions.csv")
+        else if (file_name == "openpowerlifting.csv")
         {
             indexB = new SparseIndex<RecordCompetition>(table_name + "index_file", table_name + "data_file", key);
             indexB->init(file_name);
@@ -647,7 +647,7 @@ string SQLParser::parseCreateStm()
 
             save_to_metadata(table_name, "RecordMeet", index_type, key);
         }
-        else if (file_name == "competitions.csv")
+        else if (file_name == "openpowerlifting.csv")
         {
             indexB = new ExtendibleHash<RecordCompetition>(table_name + "data_file", table_name + "index_file", key);
             indexB->init(file_name);

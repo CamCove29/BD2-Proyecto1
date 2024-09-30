@@ -151,128 +151,36 @@ int SequentileFile<RecordT>::getFileSize() {
     return (size-2*sizeof(int))/sizeof(RecordT);
 }
 
+
+//asume que el archivo esta ordenado
 template <class RecordT>
 void SequentileFile<RecordT>::init(string data_name_csv) {
-    // inicializar el data_type
-    //revisar la columna de key_name en el csv y determinar si es int o string
-    ifstream csv_file_helper(data_name_csv);
-    if (!csv_file_helper.is_open()) {
+    ifstream file(data_name_scv);
+    if (!file.is_open()) {
         cout << "Error al abrir el archivo" << endl;
-        exit(1);
-    }
-
-    //leer las dos primeras lineas, un encabezado y un registro. El encabezado es para saber que columna es key_name
-    //el registro para obtener elvalor y preguntar si es int o string
-    string encabezado, registro;
-    getline(csv_file_helper, encabezado);
-    getline(csv_file_helper, registro);
-
-    /* std::cout << "encabezado: " << encabezado << std::endl;
-    std::cout << "registro: " << registro << std::endl;*/
-    stringstream ss_encabezado(encabezado);
-    stringstream ss_registro(registro);
-
-    string item_encabezado, item_registro;
-    vector<string> items_encabezado;
-    vector<string> items_registro;
-
-    while (getline(ss_encabezado, item_encabezado, ',')) {
-        items_encabezado.push_back(item_encabezado);
-    }
-
-    while (getline(ss_registro, item_registro, ',')) {
-        items_registro.push_back(item_registro);
-    }
-
-    int i = 0;
-    for (string item : items_encabezado) {
-        if (item == this->key_name) {
-            this->data_type = this->get_type_from_string(items_registro[i]);
-            break;
-        }
-        i++;
-    }
-
-    csv_file_helper.close();
-
-
-
-    //--------------inicializar el dataFile ----------------
-    vector<RecordT*> records;
-    ifstream data_file(data_name_csv);
-    if (!data_file.is_open()) {
-        //cout << "Error al abrir el archivo6" << endl;
         return;
     }
+
     string line;
-    getline(data_file, line);  // Leer la primera línea (encabezados)
-    i = 1;
-    while(data_file.peek() != EOF && records.size() < limit*3) {
-        getline(data_file, line);
-        stringstream ss(line);
-        string item;
-        vector<string> items;
-        while (getline(ss, item, ',')) {
-            items.push_back(item);
-        }
-        RecordT* record = new RecordT(items);
-        record->next_pos = i;
-        records.push_back(record);
-        i++;
-    }
-    getline(data_file, line);
-    stringstream ss(line);
-    string item;
-    vector<string> items;
-    while (getline(ss, item, ',')) {
-        items.push_back(item);
-    }
-    RecordT* record = new RecordT(items);
-    records.push_back(record);
+    getline(file, line); // Ignorar la primera línea
 
-    //ordenar vector
-    sort(records.begin(), records.end(), [this](RecordT* a, RecordT* b) {
-        return this->compare(this->keyAccessor(a), this->keyAccessor(b), "<");
-    });
-
-    for (int i = 0; i < records.size()-1; i++) {
-        records[i]->next_pos = i+1;
-    }
-    records[records.size()-1]->next_pos = -1;
-
-    //escribir en el archivo binario
-    //cout <<"aa:" <<records.size() << endl;
-    writeSize(records.size());
+    // Leer el archivo CSV y agregar los registros al archivo binario
+    int size = 0;
     writeFirstPos(0);
-    i = 0;
-    for (RecordT* record : records) {
-        writeRecord(record, i);
-        i++;
-    }
-    //leer el ultimo record
-    //cout <<"ultimo record" << endl;
-    RecordT* record2 = readRecord(records.size()-1);
-    //cout <<record2->MeetID<<" "<<record2->MeetPath<<" "<<record2->Federation<<" "<<record2->Date<<" "<<record2->MeetCountry<<" "<<record2->MeetState<<" "<<record2->MeetTown<<" "<<record2->MeetName<<" "<<record2->next_pos<<endl;
-    //--------------usando add ----------------
-    while (data_file.peek() != EOF) {
-        //seguir leyendo csv
-        //cout <<"b:" <<i << endl;
-        getline(data_file, line);
+    while (getline(file, line)) {
+        vector<string> fields;
         stringstream ss(line);
-        string item;
-        vector<string> items;
-        while (getline(ss, item, ',')) {
-            items.push_back(item);
-        }
-        RecordT* record = new RecordT(items);
-        //cout <<"intentando agregar "<< endl;
-        //cout <<record->MeetID<<" "<<record->MeetPath<<" "<<record->Federation<<" "<<record->Date<<" "<<record->MeetCountry<<" "<<record->MeetState<<" "<<record->MeetTown<<" "<<record->MeetName<<" "<<record->next_pos<<endl;
-    
-        add(record);
-        delete record;
+        string field;
 
+        while (getline(ss, field, ',')) {
+            fields.push_back(field);
+        }
+
+        RecordT* record = new RecordT(fields);
+        writeRecord(record, size);
+        size++;
     }
-    data_file.close();
+    writeSize(size);
 }
 
 template <class RecordT>
@@ -280,11 +188,10 @@ bool SequentileFile<RecordT>::add(RecordT* record) {
     if (pseudo_add(record)) {
         int size = readSize();
         //writeSize(size+1);
-        /*
         if(getFileSize()-size > log2(size)) {
             rebuild();
+            writeSize(getFileSize());
         }
-        */
         //cout << "Registro agregado" << endl;
         return true;
     }
