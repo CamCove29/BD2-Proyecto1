@@ -14,7 +14,6 @@
 #include <cstring>
 #include <cmath>
 
-
 using namespace std;
 
 template <class RecordT>
@@ -155,7 +154,7 @@ int SequentileFile<RecordT>::getFileSize() {
 //asume que el archivo esta ordenado
 template <class RecordT>
 void SequentileFile<RecordT>::init(string data_name_csv) {
-    ifstream file(data_name_scv);
+    ifstream file(data_name_csv);
     if (!file.is_open()) {
         cout << "Error al abrir el archivo" << endl;
         return;

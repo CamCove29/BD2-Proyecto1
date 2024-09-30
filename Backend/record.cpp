@@ -166,20 +166,102 @@ RecordCompetition::RecordCompetition(int id, const char* name, char sex, const c
     next_pos = -1;
 }
 
-RecordCompetition::RecordCompetition(const vector<string>& atributos) : MeetID(stoi(atributos[0])), 
-    Sex(atributos[1][0]), Age(stoi(atributos[2])), 
-    BodyweightKg(stod(atributos[3])), WeightClassKg(stod(atributos[4])), 
-    Squat4Kg(stod(atributos[5])), BestSquatKg(stod(atributos[6])), 
-    Bench4Kg(stod(atributos[7])), BestBenchKg(stod(atributos[8])), 
-    Deadlift4Kg(stod(atributos[9])), BestDeadliftKg(stod(atributos[10])), 
-    TotalKg(stod(atributos[11])), Place(stoi(atributos[12])), 
-    Wilks(stod(atributos[13])) {
+#include <iostream>
+
+RecordCompetition::RecordCompetition(const vector<string>& atributos) : MeetID(stoi(atributos[0])) {
+    
+    if (atributos[1].size() > 0) {   
+        Sex = atributos[1][0];
+    } else {
+        Sex = ' ';
+    }
+    try {
+        Age = stoi(atributos[2]);
+    } catch (exception& e) {
+        Age = 0;
+    }
+
+   try {
+        BodyweightKg = stod(atributos[3]);
+    } catch (exception& e) {
+        BodyweightKg = 0.0;
+    }
+
+    try {
+        WeightClassKg = stod(atributos[4]);
+    } catch (exception& e) {
+        WeightClassKg = 0.0;
+    }
+
+    try {
+        Squat4Kg = stod(atributos[5]);
+    } catch (exception& e) {
+        Squat4Kg = 0.0;
+    }
+
+    try {
+        BestSquatKg = stod(atributos[6]);
+    } catch (exception& e) {
+        BestSquatKg = 0.0;
+    }
+
+    try {
+        Bench4Kg = stod(atributos[7]);
+    } catch (exception& e) {
+        Bench4Kg = 0.0;
+    }
+
+    try {
+        BestBenchKg = stod(atributos[8]);
+    } catch (exception& e) {
+        BestBenchKg = 0.0;
+    }
+
+    try {
+        Deadlift4Kg = stod(atributos[9]);
+    } catch (exception& e) {
+        Deadlift4Kg = 0.0;
+    }
+
+    try {
+        BestDeadliftKg = stod(atributos[10]);
+    } catch (exception& e) {
+        BestDeadliftKg = 0.0;
+    }
+
+    try {
+        TotalKg = stod(atributos[11]);
+    } catch (exception& e) {
+        TotalKg = 0.0;
+    }
+
+    try {
+        Place = stoi(atributos[12]);
+    } catch (exception& e) {
+        Place = 0;
+    }
+
+    try {
+        Wilks = stod(atributos[13]);
+    } catch (exception& e) {
+        Wilks = 0.0;
+    }
+
     strncpy(Name, atributos[14].c_str(), MAX_NAME_LENGTH);
     Name[MAX_NAME_LENGTH - 1] = '\0';
     strncpy(Equipment, atributos[15].c_str(), MAX_EQUIPMENT_LENGTH);
     Equipment[MAX_EQUIPMENT_LENGTH - 1] = '\0';
+
+    if (atributos.size() < 17)
+    {
+        Division[0] = '\0';
+    }
+    else
+    {
+
     strncpy(Division, atributos[16].c_str(), MAX_DIVISION_LENGTH);
     Division[MAX_DIVISION_LENGTH - 1] = '\0';
+    }
     next_pos = -1;
 }
 
