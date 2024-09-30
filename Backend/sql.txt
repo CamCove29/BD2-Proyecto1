@@ -1,0 +1,2 @@
+CREATE TABLE CustomerSparse FROM FILE "test_data.csv" USING INDEX extendible("MeetID")
+SELECT MeetID,Federation,MeetCountry FROM CustomerSparse WHERE MeetID = 247

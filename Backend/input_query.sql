@@ -1,0 +1,1 @@
+SELECT MeetID,Federation,MeetCountry FROM meliHermosa WHERE MeetID = 247
